@@ -17,9 +17,10 @@ const Home = () => {
     const [renderLibrary, setRenderLibrary] = useState(false);
     const [selectLanguage, setSelectLanguage] = useState('en') // en - english ; pl - polish
 
+    const YOUR_API_KEY = 'insert your api key' // API Key from Console Cloud Google
     // first fetch function to get 'selfLink'
     function fetchData(){
-        axios.get(`https://www.googleapis.com/books/v1/volumes?q=${intitle}&key=AIzaSyCj0T2KS4Xd-ZvlNPDoktu95JC039naCnU`)
+        axios.get(`https://www.googleapis.com/books/v1/volumes?q=${intitle}&key=${YOUR_API_KEY}`)
         .then(res => { 
             res.data.items.forEach(item => {
 
@@ -28,20 +29,24 @@ const Home = () => {
                     
                     const data = resp.data
                     const volumeInfo = resp.data.volumeInfo
+                    //condition for avoid empty response (description and book photo)
                     if(volumeInfo.imageLinks === null || volumeInfo.description === null){
+                        // condition for select language
                         if(volumeInfo.language === selectLanguage){
                             setDataArray(old => 
                                 [...old, ])
+
                         }
                             
                     }else{
+                        // condition for select language and push data to array
                         if(volumeInfo.language === selectLanguage){
                             setDataArray(old => 
                                 [...old, 
                                     {
                                         
                                         id: data.id,
-                                        pictureUrl: volumeInfo.imageLinks?.smallThumbnail || volumeInfo.imageLinks,
+                                        pictureUrl: volumeInfo.imageLinks?.smallThumbnail,
                                         title: volumeInfo.title,
                                         description: volumeInfo.description,
                                         publishedDate: volumeInfo.publishedDate
@@ -55,24 +60,28 @@ const Home = () => {
             })
             
         })
+        // catch error when title does not exist
         .catch(err => {
             alert('No data.. Try again')
         })
     }
+    // get value from input 
     function handleChange(ev){
         setIntitle(ev.target.value)
     }
+    // function which invoke get request after entered title and confirmed by enter or 'find' button
     function handleFind(){
-        setRenderLoading(true);
-        setDataArray([])
-        setTimeout(function(){
-            setRenderLoading(false)
-            fetchData()
-            setCanRender(true);
-            setRenderLibrary(true);
+        setRenderLoading(true); // word 'loading...' activated for info
+        setDataArray([]) // set book array to empty for new request
+        setTimeout(function(){ 
+            setRenderLoading(false) // close 'loading...' word
+            fetchData() // fetching data
+            setCanRender(true); // activate books field
+            setRenderLibrary(true); // acticate library 
         },300)
     }
 
+    // mapping items from api and rendering 
     const renderBooks = dataArray.map(item =>{ 
         let description = item.description
         let year = item.publishedDate
@@ -91,6 +100,7 @@ const Home = () => {
     
     
     })
+    // redux for add target book to library
     const count = useSelector((state) => state.saver.items)
     const dispatch = useDispatch()
 
@@ -98,6 +108,7 @@ const Home = () => {
     <div className='block relative'>
         <h2 className='text-center text-3xl'>Select a language:</h2>
         <div className="flex justify-around m-auto text-xl p-5 w-1/4">
+            {/* below buttons to select language for get book in this language (pl / en) */}
             <button className='border-2 p-5 bg-blue-300' onClick={()=>setSelectLanguage('pl')}>Polish</button>
             <button className='border-2 p-5 bg-green-300' onClick={()=>setSelectLanguage('en')}>English</button>
         </div>
@@ -105,13 +116,15 @@ const Home = () => {
         <div className='text-xl absolute'>
         <details className='block select-none max-w-[400px]'>
               <summary className='cursor-pointer mt-10 text-4xl'>Library: (click to show)</summary>
-              <div className="mt-10">
+              <div className="mt-10"> 
+              {/* below: render library section */}
                 {renderLibrary && count.map((item, key) => {
                     return (
                         <div key={key}>
                             <div className='pt-5'>
                                 <p className='italic'>{item}</p>
-                                <button
+                                {/* below: button which remove target book from library */}
+                                <button 
                                 className='cursor-pointer'
                                 onClick={()=>{
                                     dispatch(removing(item));
@@ -128,7 +141,7 @@ const Home = () => {
             </div>
         </details>
       </div>
-      
+      {/* below: find section with input and button */}
         <div className='grid w-1/2 m-auto bg-slate-400 text-center'>
             <label htmlFor="textarea" className='text-2xl'>Search book by title:</label>
             <input type="text" className='bg-gray-100 border-2 text-xl text-center' name="textarea"
@@ -142,6 +155,7 @@ const Home = () => {
             <button onClick={handleFind}>Find</button>
         </div>
         <div className='block w-3/5 m-auto'>
+            {/* render books section */}
         {renderLoading && <RenderLoading/>}
         {canRender && renderBooks}
         </div>

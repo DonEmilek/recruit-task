@@ -1,5 +1,6 @@
 import React from 'react'
 import '../App.css'
+// book component
 const Book = (props) => {
   return (
       <div key={props.id} className="flex m-10 text-3xl">

@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { adding, removing } from '../saver'
+
 import Book from './Book'
 const RenderLoading = () => {
     return (
@@ -17,16 +18,17 @@ const Home = () => {
     const [renderLibrary, setRenderLibrary] = useState(false);
     const [selectLanguage, setSelectLanguage] = useState('en') // en - english ; pl - polish
 
-    const YOUR_API_KEY = 'insert your api key' // API Key from Console Cloud Google
+    const YOUR_API_KEY = 'enter-your-api-key' // API Key from Console Cloud Google
     // first fetch function to get 'selfLink'
     function fetchData(){
+        setRenderLoading(true); // word 'loading...' activated for info
         axios.get(`https://www.googleapis.com/books/v1/volumes?q=${intitle}&key=${YOUR_API_KEY}`)
         .then(res => { 
             res.data.items.forEach(item => {
 
                 // second fetch function to get: 'picture url', 'book's title', 'year of publication', 'description'
                 axios.get(item.selfLink).then(resp => {
-                    
+                    setRenderLoading(false) // close 'loading...' word
                     const data = resp.data
                     const volumeInfo = resp.data.volumeInfo
                     //condition for avoid empty response (description and book photo)
@@ -53,9 +55,7 @@ const Home = () => {
                                     }
                                 ])
                         }
-                        
-                    }
-                    
+                    }  
                 })
             })
             
@@ -71,21 +71,16 @@ const Home = () => {
     }
     // function which invoke get request after entered title and confirmed by enter or 'find' button
     function handleFind(){
-        setRenderLoading(true); // word 'loading...' activated for info
         setDataArray([]) // set book array to empty for new request
-        setTimeout(function(){ 
-            setRenderLoading(false) // close 'loading...' word
-            fetchData() // fetching data
-            setCanRender(true); // activate books field
-            setRenderLibrary(true); // acticate library 
-        },300)
+        fetchData() // fetching data
+        setCanRender(true); // activate books field
+        setRenderLibrary(true); // acticate library 
     }
 
     // mapping items from api and rendering 
     const renderBooks = dataArray.map(item =>{ 
         let description = item.description
         let year = item.publishedDate
-    
         return (
             <Book
             key={item.id}
